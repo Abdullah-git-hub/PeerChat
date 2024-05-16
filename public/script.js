@@ -4,6 +4,8 @@ const videoElement1 = document.getElementById("video_1");
 const videoElement2 = document.getElementById("video_2");
 const videogrid = document.getElementById("video-grid");
 
+videoElement1.muted = true;
+
 var peer = new Peer();
 // var peer = new Peer(undefined, {
 //     path: "/peerjs",
@@ -20,7 +22,6 @@ peer.on("open", (id) => {
 navigator.mediaDevices
     .getUserMedia({ video: true, audio: true })
     .then((stream) => {
-        // myVideoStream = stream;
         addVideoStream(videoElement1, stream);
 
         peer.on("call", (call) => {
@@ -47,5 +48,5 @@ const addVideoStream = (video, stream) => {
     video.addEventListener("loadmetadata", () => {
         video.play();
     });
-    videogrid.appendChild(video);
+    // videogrid.appendChild(video);
 };
