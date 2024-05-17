@@ -1,30 +1,68 @@
 const express = require("express");
+const socket = require("socket.io");
 const app = express();
-const server = require("http").Server(app);
-const { v4: uuidv4 } = require("uuid");
-const io = require("socket.io")(server);
-const { ExpressPeerServer } = require("peer");
-const peerServer = ExpressPeerServer(server, { debug: true });
 
+// Routes
+const userRout = require("./routes/userRoute");
+
+//Settings
 app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(express.static("public"));
-app.use("/peerjs", peerServer);
 
-app.get("/", (req, res) => {
-    res.redirect(`/${uuidv4()}`);
-});
+app.use("/", userRout);
 
-app.get("/:room", (req, res) => {
-    res.render("room", { roomID: req.params.room });
-});
+const server = app.listen(3000, () => console.log("Listening to port 3000"));
+
+var io = socket(server);
 
 io.on("connection", (socket) => {
-    socket.on("join-room", (ROOM_ID, userId) => {
-        socket.join(ROOM_ID);
-        socket.broadcast.to(ROOM_ID).emit("user-connected", userId);
-    });
-});
+    // console.log(socket);
+    console.log("User connected:", socket.id);
 
-server.listen(3000, () => {
-    console.log("Listening...");
+    // socket.emit("getOwnSocketId", socket.id);
+
+    socket.on("join", (roomId) => {
+        console.log(roomId);
+        const roomList = io.sockets.adapter.rooms;
+        console.log(roomList);
+
+        var room = roomList.get(roomId);
+
+        console.log(room);
+
+        if (room) {
+            socket.join(roomId);
+            console.log("Room 1");
+        } else if (room.size == 1) {
+            console.log("Room 2");
+            socket.join(roomId);
+        } else {
+            console.log("Room fullfilled");
+        }
+        var room = roomList.get(roomId);
+
+        console.log(room);
+    });
+
+    socket.on("ready", (roomId) => {
+        console.log("Ready");
+        socket.broadcast.to(roomId).emit("ready");
+    });
+
+    socket.on("candidate", (candidate, roomId) => {
+        console.log("candidate:", candidate);
+        socket.broadcast.to(roomId).emit("candidate", candidate);
+    });
+
+    socket.on("offer", (offer, roomId) => {
+        console.log("offer:", offer);
+        socket.broadcast.to(roomId).emit("offer", offer);
+    });
+
+    socket.on("answer", (answer, roomId) => {
+        console.log("answer:", answer);
+        socket.broadcast.to(roomId).emit("answer", answer);
+    });
 });

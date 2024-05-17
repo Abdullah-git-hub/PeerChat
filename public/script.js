@@ -1,52 +1,44 @@
-const socket = io("/");
+const socket = io();
 
-const videoElement1 = document.getElementById("video_1");
-const videoElement2 = document.getElementById("video_2");
-const videogrid = document.getElementById("video-grid");
+const video_chat_form = document.getElementById("video-chat-form");
+const video_chat_room = document.getElementById("video-chat-rooms");
+const roomName = document.getElementById("roomName");
+const joinBtn = document.getElementById("join");
+const userVideo = document.getElementById("user-video");
+const peerVideo = document.getElementById("peer-video");
 
-videoElement1.muted = true;
-
-var peer = new Peer();
-// var peer = new Peer(undefined, {
-//     path: "/peerjs",
-//     host: "/",
-//     port: "3030",
+// socket.on("getOwnSocketId", (id) => {
+//     roomName.value = id;
 // });
 
-peer.on("open", (id) => {
-    console.log(id);
-    socket.emit("join-room", ROOM_ID, id);
-});
+joinBtn.onclick = () => {
+    if (roomName.value) {
+        socket.emit("join", roomName.value);
 
-// let myVideoStream;
-navigator.mediaDevices
-    .getUserMedia({ video: true, audio: true })
-    .then((stream) => {
-        addVideoStream(videoElement1, stream);
+        navigator.getUserMedia =
+            navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia;
 
-        peer.on("call", (call) => {
-            call.answer(stream);
-            call.on("stream", (userVideoStream) => {
-                addVideoStream(videoElement2, userVideoStream);
-            });
-        });
+        navigator.getUserMedia(
+            {
+                audio: false,
+                video: true,
+            },
+            function (stream) {
+                video_chat_form.style.display = "none";
+                userVideo.srcObject = stream;
+                userVideo.onloadedmetadata = function (e) {
+                    userVideo.play();
+                };
+            },
+            function (err) {
+                console.log(err);
+            }
+        );
 
-        socket.on("user-connected", (userId) => {
-            connectToNewUser(userId, stream);
-        });
-    });
+        return;
+    }
 
-function connectToNewUser(userId, stream) {
-    const call = peer.call(userId, stream);
-    call.on("stream", (userVideoStream) => {
-        addVideoStream(videoElement2, userVideoStream);
-    });
-}
-
-const addVideoStream = (video, stream) => {
-    video.srcObject = stream;
-    video.addEventListener("loadmetadata", () => {
-        video.play();
-    });
-    // videogrid.appendChild(video);
+    alert("Enter room name");
 };
