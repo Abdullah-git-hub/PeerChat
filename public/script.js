@@ -22,7 +22,7 @@ joinBtn.onclick = () => {
 
         navigator.getUserMedia(
             {
-                audio: false,
+                audio: true,
                 video: true,
             },
             function (stream) {

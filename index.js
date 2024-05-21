@@ -32,14 +32,17 @@ io.on("connection", (socket) => {
 
         console.log(room);
 
-        if (room) {
+        if (!room) {
             socket.join(roomId);
-            console.log("Room 1");
+            console.log("Room 1", room);
+            socket.emit("created");
         } else if (room.size == 1) {
             console.log("Room 2");
             socket.join(roomId);
+            socket.emit("joined");
         } else {
             console.log("Room fullfilled");
+            socket.emit("full");
         }
         var room = roomList.get(roomId);
 
